@@ -268,7 +268,7 @@ def handle_burst_shooting(profile):
     )
     extra_speed = 0.0
     if win32api.GetAsyncKeyState(win32con.VK_CAPITAL):
-        extra_speed += calculate_saturating_speed(
+        extra_speed -= calculate_saturating_speed(
             0.0,
             elapsed_time,
             profile['capslock_speed_growth_rate'],
@@ -333,7 +333,7 @@ try:
                 )
                 extra_speed = 0.0
                 if win32api.GetAsyncKeyState(win32con.VK_CAPITAL):
-                    extra_speed += calculate_saturating_speed(
+                    extra_speed -= calculate_saturating_speed(
                         0.0,
                         elapsed_time,
                         profiles[current_profile]['capslock_speed_growth_rate'],
