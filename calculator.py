@@ -1,5 +1,6 @@
 import configparser
 import os
+import sys
 
 def load_config():
     config = configparser.ConfigParser()
@@ -25,86 +26,39 @@ def update_profiles():
     # Текущая чувствительность в конфиге
     current_sens = float(config['Settings']['sensitivity'])
     
-    # Базовые значения для sens 20
-    beryl_base = float(config['Settings']['beryl_speed'])
-    aug_base = float(config['Settings']['aug_speed'])
-    m4_base = float(config['Settings']['m4_speed'])
-    mutant_base = float(config['Settings']['mutant_speed'])
-    dmr_base = float(config['Settings']['dmr_speed'])
-    
     # Получаем все параметры из конфига
     vertical_multiplier = float(config['Settings']['vertical_multiplier'])
-    
     # Расчет параметров для каждого профиля
     profiles = {
         'F1': {  # Beryl
             'name': 'beryl', 
             'speed': calculate_speed(float(config['Settings']['beryl_speed']), 20, current_sens, vertical_multiplier),
-            'normal_speed_increase': float(config['Settings']['beryl_normal_speed_increase']),
-            'normal_increase_time': float(config['Settings']['beryl_normal_increase_time'])
+            'speed_growth_rate': float(config['Settings']['beryl_speed_growth_rate'])
         },
         'F2': {  # AUG
             'name': 'aug',
             'speed': calculate_speed(float(config['Settings']['aug_speed']), 20, current_sens, vertical_multiplier),
-            'normal_speed_increase': float(config['Settings']['aug_normal_speed_increase']),
-            'normal_increase_time': float(config['Settings']['aug_normal_increase_time'])
+            'speed_growth_rate': float(config['Settings']['aug_speed_growth_rate'])
         },
         'F3': {  # M4
             'name': 'm4',
             'speed': calculate_speed(float(config['Settings']['m4_speed']), 20, current_sens, vertical_multiplier),
-            'normal_speed_increase': float(config['Settings']['m4_normal_speed_increase']),
-            'normal_increase_time': float(config['Settings']['m4_normal_increase_time'])
+            'speed_growth_rate': float(config['Settings']['m4_speed_growth_rate'])
         },
         'F4': {  # Mutant
             'name': 'mutant',
             'speed': calculate_speed(float(config['Settings']['mutant_speed']), 20, current_sens, vertical_multiplier),
-            'normal_speed_increase': float(config['Settings']['mutant_normal_speed_increase']),
-            'normal_increase_time': float(config['Settings']['mutant_normal_increase_time']),
+            'speed_growth_rate': float(config['Settings']['mutant_speed_growth_rate']),
             'click_interval': float(config['Settings']['mutant_click_interval'])
         },
         'dmr': {
             'name': 'dmr',
             'speed': calculate_speed(float(config['Settings']['dmr_speed']), 20, current_sens, vertical_multiplier),
-            'normal_speed_increase': float(config['Settings']['dmr_normal_speed_increase']),
-            'normal_increase_time': float(config['Settings']['dmr_normal_increase_time'])
+            'speed_growth_rate': 0.0
         }
     }
     
     return profiles
-    
-    return {
-        'F1': {  # Beryl
-            'name': 'beryl', 
-            'speed': beryl_speed,
-            'normal_speed_increase': 10.5,
-            'normal_increase_time': 0.7
-        },
-        'F2': {  # AUG
-            'name': 'aug',
-            'speed': aug_speed,
-            'normal_speed_increase': 11.35,
-            'normal_increase_time': 1.25
-        },
-        'F3': {  # M4
-            'name': 'm4',
-            'speed': m4_speed,
-            'normal_speed_increase': 2.65,
-            'normal_increase_time': 0.5
-        },
-        'F4': {  # Mutant
-            'name': 'mutant',
-            'speed': mutant_speed,
-            'normal_speed_increase': 9.35,
-            'normal_increase_time': 1.25,
-            'click_interval': 0.01
-        },
-        'dmr': {
-            'name': 'dmr',
-            'speed': dmr_speed,
-            'normal_speed_increase': 0.0,
-            'normal_increase_time': 0.0
-        }
-    }
 
 def main():
     profiles = update_profiles()
@@ -113,8 +67,7 @@ def main():
     for key, profile in profiles.items():
         print(f"{profile['name'].upper()}")
         print(f"  Скорость: {profile['speed']:.2f}")
-        print(f"  Увеличение скорости: {profile['normal_speed_increase']}")
-        print(f"  Время увеличения: {profile['normal_increase_time']:.2f}")
+        print(f"  Рост скорости (эксп): {profile['speed_growth_rate']}")
         if 'click_interval' in profile:
             print(f"  Интервал кликов: {profile['click_interval']:.3f}")
         print("-" * 50)
