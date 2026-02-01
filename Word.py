@@ -150,10 +150,11 @@ def move_mouse_vertically_down(speed):
     if speed > 0:
         win32api.mouse_event(win32con.MOUSEEVENTF_MOVE, 0, int(speed), 0, 0)
 
-def calculate_exponential_speed(base_speed, elapsed_time, growth_rate):
-    if growth_rate <= 0:
+def calculate_saturating_speed(base_speed, elapsed_time, growth_rate, max_increase):
+    if growth_rate <= 0 or max_increase <= 0:
         return base_speed
-    return base_speed * math.exp(growth_rate * max(0.0, elapsed_time))
+    capped_time = max(0.0, elapsed_time)
+    return base_speed + max_increase * (1 - math.exp(-growth_rate * capped_time))
 
 # Изменим функцию toggle_profile
 def toggle_profile(key, profile_key):
@@ -245,25 +246,7 @@ def handle_dmr_shooting(profile):
     if lmb_pressed_time is None:
         lmb_pressed_time = current_time
     
-    elapsed_time = current_time - lmb_pressed_time
-    speed = calculate_exponential_speed(
-        profile['speed'],
-        elapsed_time,
-        profile['speed_growth_rate']
-    )
-    
-    if win32api.GetAsyncKeyState(win32con.VK_SHIFT):
-        speed += shift_speed_increase
-    elif win32api.GetAsyncKeyState(ord('C')):
-        speed += c_speed_increase
-
-    if win32api.GetAsyncKeyState(win32con.VK_CAPITAL):
-        speed /= capslock_speed_multiplier
-
-    if is_v_active:
-        speed *= ctrl_speed_multiplier
-        
-    move_mouse_vertically_down(speed)
+    return
 
 def handle_burst_shooting(profile):
     global last_click_time, lmb_pressed_time
@@ -281,10 +264,11 @@ def handle_burst_shooting(profile):
         lmb_pressed_time = current_time
     
     elapsed_time = current_time - lmb_pressed_time
-    speed = calculate_exponential_speed(
+    speed = calculate_saturating_speed(
         profile['speed'],
         elapsed_time,
-        profile['speed_growth_rate']
+        profile['speed_growth_rate'],
+        profile['max_speed_increase']
     )
     
     if win32api.GetAsyncKeyState(win32con.VK_SHIFT):
@@ -334,10 +318,11 @@ try:
                     lmb_pressed_time = current_time
                 
                 elapsed_time = current_time - lmb_pressed_time
-                speed = calculate_exponential_speed(
+                speed = calculate_saturating_speed(
                     profiles[current_profile]['speed'],
                     elapsed_time,
-                    profiles[current_profile]['speed_growth_rate']
+                    profiles[current_profile]['speed_growth_rate'],
+                    profiles[current_profile]['max_speed_increase']
                 )
                 
                 if win32api.GetAsyncKeyState(win32con.VK_SHIFT):
