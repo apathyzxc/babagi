@@ -70,6 +70,7 @@ default_profile = {'name': 'No profile', 'speed': 0.0}
 
 # Параметры управления скоростью
 shift_speed_increase = 1.5
+capslock_speed_multiplier = 1.5
 ctrl_speed_multiplier = 1.5
 
 # Глобальные переменные состояния
@@ -267,13 +268,6 @@ def handle_burst_shooting(profile):
         profile['max_speed_increase']
     )
     extra_speed = 0.0
-    if win32api.GetAsyncKeyState(win32con.VK_CAPITAL):
-        extra_speed -= calculate_saturating_speed(
-            0.0,
-            elapsed_time,
-            profile['capslock_speed_growth_rate'],
-            profile['capslock_max_speed_increase']
-        )
     if win32api.GetAsyncKeyState(ord('C')):
         extra_speed += calculate_saturating_speed(
             0.0,
@@ -285,6 +279,9 @@ def handle_burst_shooting(profile):
     
     if win32api.GetAsyncKeyState(win32con.VK_SHIFT):
         speed += shift_speed_increase
+
+    if win32api.GetAsyncKeyState(win32con.VK_CAPITAL):
+        speed /= capslock_speed_multiplier
 
     if is_v_active:
         speed *= ctrl_speed_multiplier
@@ -332,13 +329,6 @@ try:
                     profiles[current_profile]['max_speed_increase']
                 )
                 extra_speed = 0.0
-                if win32api.GetAsyncKeyState(win32con.VK_CAPITAL):
-                    extra_speed -= calculate_saturating_speed(
-                        0.0,
-                        elapsed_time,
-                        profiles[current_profile]['capslock_speed_growth_rate'],
-                        profiles[current_profile]['capslock_max_speed_increase']
-                    )
                 if win32api.GetAsyncKeyState(ord('C')):
                     extra_speed += calculate_saturating_speed(
                         0.0,
@@ -350,6 +340,9 @@ try:
                 
                 if win32api.GetAsyncKeyState(win32con.VK_SHIFT):
                     speed += shift_speed_increase
+
+                if win32api.GetAsyncKeyState(win32con.VK_CAPITAL):
+                    speed /= capslock_speed_multiplier
 
                 if is_v_active:
                     speed *= ctrl_speed_multiplier
