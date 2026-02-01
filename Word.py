@@ -70,10 +70,6 @@ default_profile = {'name': 'No profile', 'speed': 0.0}
 
 # Параметры управления скоростью
 shift_speed_increase = 1.5
-c_speed_increase = 1.5
-additional_speed_increase = 1.0
-additional_increase_time = 1.0
-capslock_speed_multiplier = 1.200
 ctrl_speed_multiplier = 1.5
 
 # Глобальные переменные состояния
@@ -270,14 +266,25 @@ def handle_burst_shooting(profile):
         profile['speed_growth_rate'],
         profile['max_speed_increase']
     )
+    extra_speed = 0.0
+    if win32api.GetAsyncKeyState(win32con.VK_CAPITAL):
+        extra_speed += calculate_saturating_speed(
+            0.0,
+            elapsed_time,
+            profile['capslock_speed_growth_rate'],
+            profile['capslock_max_speed_increase']
+        )
+    if win32api.GetAsyncKeyState(ord('C')):
+        extra_speed += calculate_saturating_speed(
+            0.0,
+            elapsed_time,
+            profile['c_speed_growth_rate'],
+            profile['c_max_speed_increase']
+        )
+    speed += extra_speed
     
     if win32api.GetAsyncKeyState(win32con.VK_SHIFT):
         speed += shift_speed_increase
-    elif win32api.GetAsyncKeyState(ord('C')):
-        speed += c_speed_increase
-
-    if win32api.GetAsyncKeyState(win32con.VK_CAPITAL):
-        speed /= capslock_speed_multiplier
 
     if is_v_active:
         speed *= ctrl_speed_multiplier
@@ -324,14 +331,25 @@ try:
                     profiles[current_profile]['speed_growth_rate'],
                     profiles[current_profile]['max_speed_increase']
                 )
+                extra_speed = 0.0
+                if win32api.GetAsyncKeyState(win32con.VK_CAPITAL):
+                    extra_speed += calculate_saturating_speed(
+                        0.0,
+                        elapsed_time,
+                        profiles[current_profile]['capslock_speed_growth_rate'],
+                        profiles[current_profile]['capslock_max_speed_increase']
+                    )
+                if win32api.GetAsyncKeyState(ord('C')):
+                    extra_speed += calculate_saturating_speed(
+                        0.0,
+                        elapsed_time,
+                        profiles[current_profile]['c_speed_growth_rate'],
+                        profiles[current_profile]['c_max_speed_increase']
+                    )
+                speed += extra_speed
                 
                 if win32api.GetAsyncKeyState(win32con.VK_SHIFT):
                     speed += shift_speed_increase
-                elif win32api.GetAsyncKeyState(ord('C')):
-                    speed += c_speed_increase
-
-                if win32api.GetAsyncKeyState(win32con.VK_CAPITAL):
-                    speed /= capslock_speed_multiplier
 
                 if is_v_active:
                     speed *= ctrl_speed_multiplier

@@ -34,32 +34,52 @@ def update_profiles():
             'name': 'beryl', 
             'speed': calculate_speed(float(config['Settings']['beryl_speed']), 20, current_sens, vertical_multiplier),
             'speed_growth_rate': float(config['Settings']['beryl_speed_growth_rate']),
-            'max_speed_increase': float(config['Settings']['beryl_max_speed_increase'])
+            'max_speed_increase': float(config['Settings']['beryl_max_speed_increase']),
+            'capslock_speed_growth_rate': float(config['Settings']['beryl_capslock_speed_growth_rate']),
+            'capslock_max_speed_increase': float(config['Settings']['beryl_capslock_max_speed_increase']),
+            'c_speed_growth_rate': float(config['Settings']['beryl_c_speed_growth_rate']),
+            'c_max_speed_increase': float(config['Settings']['beryl_c_max_speed_increase'])
         },
         'F2': {  # AUG
             'name': 'aug',
             'speed': calculate_speed(float(config['Settings']['aug_speed']), 20, current_sens, vertical_multiplier),
             'speed_growth_rate': float(config['Settings']['aug_speed_growth_rate']),
-            'max_speed_increase': float(config['Settings']['aug_max_speed_increase'])
+            'max_speed_increase': float(config['Settings']['aug_max_speed_increase']),
+            'capslock_speed_growth_rate': float(config['Settings']['aug_capslock_speed_growth_rate']),
+            'capslock_max_speed_increase': float(config['Settings']['aug_capslock_max_speed_increase']),
+            'c_speed_growth_rate': float(config['Settings']['aug_c_speed_growth_rate']),
+            'c_max_speed_increase': float(config['Settings']['aug_c_max_speed_increase'])
         },
         'F3': {  # M4
             'name': 'm4',
             'speed': calculate_speed(float(config['Settings']['m4_speed']), 20, current_sens, vertical_multiplier),
             'speed_growth_rate': float(config['Settings']['m4_speed_growth_rate']),
-            'max_speed_increase': float(config['Settings']['m4_max_speed_increase'])
+            'max_speed_increase': float(config['Settings']['m4_max_speed_increase']),
+            'capslock_speed_growth_rate': float(config['Settings']['m4_capslock_speed_growth_rate']),
+            'capslock_max_speed_increase': float(config['Settings']['m4_capslock_max_speed_increase']),
+            'c_speed_growth_rate': float(config['Settings']['m4_c_speed_growth_rate']),
+            'c_max_speed_increase': float(config['Settings']['m4_c_max_speed_increase'])
         },
         'F4': {  # Mutant
             'name': 'mutant',
             'speed': calculate_speed(float(config['Settings']['mutant_speed']), 20, current_sens, vertical_multiplier),
             'speed_growth_rate': float(config['Settings']['mutant_speed_growth_rate']),
             'max_speed_increase': float(config['Settings']['mutant_max_speed_increase']),
+            'capslock_speed_growth_rate': float(config['Settings']['mutant_capslock_speed_growth_rate']),
+            'capslock_max_speed_increase': float(config['Settings']['mutant_capslock_max_speed_increase']),
+            'c_speed_growth_rate': float(config['Settings']['mutant_c_speed_growth_rate']),
+            'c_max_speed_increase': float(config['Settings']['mutant_c_max_speed_increase']),
             'click_interval': float(config['Settings']['mutant_click_interval'])
         },
         'dmr': {
             'name': 'dmr',
             'speed': calculate_speed(float(config['Settings']['dmr_speed']), 20, current_sens, vertical_multiplier),
             'speed_growth_rate': 0.0,
-            'max_speed_increase': 0.0
+            'max_speed_increase': 0.0,
+            'capslock_speed_growth_rate': 0.0,
+            'capslock_max_speed_increase': 0.0,
+            'c_speed_growth_rate': 0.0,
+            'c_max_speed_increase': 0.0
         }
     }
     
@@ -74,6 +94,10 @@ def main():
         print(f"  Скорость: {profile['speed']:.2f}")
         print(f"  Рост скорости (эксп): {profile['speed_growth_rate']}")
         print(f"  Макс. ускорение: {profile['max_speed_increase']}")
+        print(f"  CapsLock рост: {profile['capslock_speed_growth_rate']}")
+        print(f"  CapsLock макс: {profile['capslock_max_speed_increase']}")
+        print(f"  C рост: {profile['c_speed_growth_rate']}")
+        print(f"  C макс: {profile['c_max_speed_increase']}")
         if 'click_interval' in profile:
             print(f"  Интервал кликов: {profile['click_interval']:.3f}")
         print("-" * 50)
