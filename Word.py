@@ -8,6 +8,7 @@ import ctypes
 from ctypes import wintypes
 import sys
 import os
+import math
 from colorama import init, Fore, Back, Style
 import psutil
 
@@ -69,10 +70,6 @@ default_profile = {'name': 'No profile', 'speed': 0.0}
 
 # Параметры управления скоростью
 shift_speed_increase = 1.5
-c_speed_increase = 1.5
-additional_speed_increase = 1.0
-additional_increase_time = 1.0
-capslock_speed_multiplier = 1.200
 ctrl_speed_multiplier = 1.5
 
 # Глобальные переменные состояния
@@ -80,7 +77,6 @@ is_v_active = False
 current_profile = 'None'
 last_click_time = 0
 click_interval = 0.155  # DMR интервал
-is_dmr_clicked = False
 lmb_pressed_time = None
 rmb_press_time = 0
 lmb_press_time = 0
@@ -149,6 +145,12 @@ def speak(text):
 def move_mouse_vertically_down(speed):
     if speed > 0:
         win32api.mouse_event(win32con.MOUSEEVENTF_MOVE, 0, int(speed), 0, 0)
+
+def calculate_saturating_speed(base_speed, elapsed_time, growth_rate, max_increase):
+    if growth_rate <= 0 or max_increase <= 0:
+        return base_speed
+    capped_time = max(0.0, elapsed_time)
+    return base_speed + max_increase * (1 - math.exp(-growth_rate * capped_time))
 
 # Изменим функцию toggle_profile
 def toggle_profile(key, profile_key):
@@ -233,38 +235,17 @@ def handle_recoil_pattern(profile_key, current_time):
     return horizontal_value
 
 def handle_dmr_shooting(profile):
-    global last_click_time, is_dmr_clicked, lmb_pressed_time
+    global last_click_time, lmb_pressed_time
     current_time = time()
-    
-    # Автоклик с заданным интервалом
-    if current_time - last_click_time >= 0.155:  # DMR интервал 155мс
-        # Быстрый клик
-        win32api.mouse_event(win32con.MOUSEEVENTF_LEFTUP, 0, 0, 0, 0)
-        win32api.mouse_event(win32con.MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0)
-        last_click_time = current_time
     
     # Инициализация времени начала стрельбы
     if lmb_pressed_time is None:
         lmb_pressed_time = current_time
     
-    # Компенсация отдачи (постоянное движение)
-    speed = profile['speed']
-    
-    if win32api.GetAsyncKeyState(win32con.VK_SHIFT):
-        speed += shift_speed_increase
-    elif win32api.GetAsyncKeyState(ord('C')):
-        speed += c_speed_increase
-
-    if win32api.GetAsyncKeyState(win32con.VK_CAPITAL):
-        speed /= capslock_speed_multiplier
-
-    if is_v_active:
-        speed *= ctrl_speed_multiplier
-        
-    move_mouse_vertically_down(speed)
+    return
 
 def handle_burst_shooting(profile):
-    global last_click_time, is_dmr_clicked, lmb_pressed_time
+    global last_click_time, lmb_pressed_time
     current_time = time()
     
     # Автоклик с минимальным интервалом
@@ -279,23 +260,31 @@ def handle_burst_shooting(profile):
         lmb_pressed_time = current_time
     
     elapsed_time = current_time - lmb_pressed_time
-    speed = profile['speed']
-    
-    # Плавное увеличение отдачи со временем (рампа за normal_increase_time)
-    if profile['normal_increase_time'] > 0:
-        factor = min(1.0, max(0.0, elapsed_time) / profile['normal_increase_time'])
-        speed += profile['normal_speed_increase'] * factor
-    else:
-        # Если время увеличения равно 0 — применяем увеличение сразу
-        speed += profile['normal_speed_increase']
+    speed = calculate_saturating_speed(
+        profile['speed'],
+        elapsed_time,
+        profile['speed_growth_rate'],
+        profile['max_speed_increase']
+    )
+    extra_speed = 0.0
+    if win32api.GetAsyncKeyState(win32con.VK_CAPITAL):
+        extra_speed += calculate_saturating_speed(
+            0.0,
+            elapsed_time,
+            profile['capslock_speed_growth_rate'],
+            profile['capslock_max_speed_increase']
+        )
+    if win32api.GetAsyncKeyState(ord('C')):
+        extra_speed += calculate_saturating_speed(
+            0.0,
+            elapsed_time,
+            profile['c_speed_growth_rate'],
+            profile['c_max_speed_increase']
+        )
+    speed += extra_speed
     
     if win32api.GetAsyncKeyState(win32con.VK_SHIFT):
         speed += shift_speed_increase
-    elif win32api.GetAsyncKeyState(ord('C')):
-        speed += c_speed_increase
-
-    if win32api.GetAsyncKeyState(win32con.VK_CAPITAL):
-        speed /= capslock_speed_multiplier
 
     if is_v_active:
         speed *= ctrl_speed_multiplier
@@ -336,23 +325,31 @@ try:
                     lmb_pressed_time = current_time
                 
                 elapsed_time = current_time - lmb_pressed_time
-                speed = profiles[current_profile]['speed']
-                
-                # Плавное увеличение отдачи со временем (рампа за normal_increase_time)
-                if profiles[current_profile]['normal_increase_time'] > 0:
-                    factor = min(1.0, max(0.0, elapsed_time) / profiles[current_profile]['normal_increase_time'])
-                    speed += profiles[current_profile]['normal_speed_increase'] * factor
-                else:
-                    # Если время увеличения равно 0 — применяем увеличение сразу
-                    speed += profiles[current_profile]['normal_speed_increase']
+                speed = calculate_saturating_speed(
+                    profiles[current_profile]['speed'],
+                    elapsed_time,
+                    profiles[current_profile]['speed_growth_rate'],
+                    profiles[current_profile]['max_speed_increase']
+                )
+                extra_speed = 0.0
+                if win32api.GetAsyncKeyState(win32con.VK_CAPITAL):
+                    extra_speed += calculate_saturating_speed(
+                        0.0,
+                        elapsed_time,
+                        profiles[current_profile]['capslock_speed_growth_rate'],
+                        profiles[current_profile]['capslock_max_speed_increase']
+                    )
+                if win32api.GetAsyncKeyState(ord('C')):
+                    extra_speed += calculate_saturating_speed(
+                        0.0,
+                        elapsed_time,
+                        profiles[current_profile]['c_speed_growth_rate'],
+                        profiles[current_profile]['c_max_speed_increase']
+                    )
+                speed += extra_speed
                 
                 if win32api.GetAsyncKeyState(win32con.VK_SHIFT):
                     speed += shift_speed_increase
-                elif win32api.GetAsyncKeyState(ord('C')):
-                    speed += c_speed_increase
-
-                if win32api.GetAsyncKeyState(win32con.VK_CAPITAL):
-                    speed /= capslock_speed_multiplier
 
                 if is_v_active:
                     speed *= ctrl_speed_multiplier
@@ -362,17 +359,11 @@ try:
             # Кнопки не зажаты вместе — сбрасываем таймеры удержания
             lmb_pressed_time = None
             last_click_time = 0
-            if is_dmr_clicked:
-                # Гарантированно отпускаем ЛКМ только если был автоклик
-                win32api.mouse_event(win32con.MOUSEEVENTF_LEFTUP, 0, 0, 0, 0)
-                is_dmr_clicked = False
 
         sleep(0.001)
 
 except KeyboardInterrupt:
     # При выходе гарантированно отпускаем ЛКМ
-    if is_dmr_clicked:
-        win32api.mouse_event(win32con.MOUSEEVENTF_LEFTUP, 0, 0, 0, 0)
     print(f"\n{Fore.YELLOW}Program finished{Style.RESET_ALL}")
     sys.exit(0)
 except Exception as e:
